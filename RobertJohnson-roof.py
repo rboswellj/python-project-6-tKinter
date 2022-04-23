@@ -1,3 +1,7 @@
+ # Robert Johnson
+ # CIT 144
+ # Project 6
+
 from tkinter import *
 
 
@@ -65,7 +69,7 @@ class RoofCalc(Frame):
         self.btnCalc.grid(row=6, column=0, padx=0, pady=20, ipadx=2, ipady=2, sticky=W)
 
         # Clear Button
-        self.btnCalc = Button(self.f1, text="Clear Form")
+        self.btnCalc = Button(self.f1, text="Clear Form", command=self.clear_form)
         self.btnCalc.grid(row=6, column=1, padx=0, pady=20, ipadx=2, ipady=2, sticky=W)
 
         # Total field
@@ -73,7 +77,12 @@ class RoofCalc(Frame):
         self.txtTotal = Entry(self.f1, width=self.entWidth, textvariable=self.strTotal)
         self.txtTotal.grid(row=8, column=0, padx=self.xPad, pady=self.yPad, sticky=W)
 
+        # Status Label
+        self.status = StringVar()
+        self.lblStatus = Label(self.f1, textvariable=self.status).grid(row=9, column=0, padx=self.xPad, pady=0, sticky=W)
+
     def get_coefficient(self):
+        # Gets the coefficient based on rise
         rise = int(self.strRise.get())
         if rise == 1:
             return 1.003
@@ -96,31 +105,53 @@ class RoofCalc(Frame):
         elif rise == 10:
             return 1.302
         else:
+            # Signals that the rise entry was invalid
             return -1
 
-    def print_values(self):
-        length, width = int(self.strLength.get()), int(self.strWidth.get())
-        print(f"length: {length} width: {width} area: {length * width}")
 
     def calculate_cost(self):
-        length, width = int(self.strLength.get()), int(self.strWidth.get())
-        coefficient = self.get_coefficient()
-        print(f"Length: {length} Width: {width} Co:{coefficient} shingles: {self.strShingleType.get()} Eaves: {self.eave.get()}")
-
-        if self.eave.get():
-            self.area = length * (width + 2) * coefficient * self.scrapAllowance
-            print(f"Area {self.area}")
+        # Make sure no required fields are blank
+        if not self.strLength.get() or not self.strWidth.get() or not self.strRise.get() or not self.strShingleType.get():
+            self.status.set("Blank entries. Enter values")
         else:
-            self.area = length * width * coefficient * self.scrapAllowance
-            print(f"Area {self.area}")
+            # Try and parse strings to integers, prompt if entry invalid
+            try:
+                length, width = int(self.strLength.get()), int(self.strWidth.get())
+                coefficient = self.get_coefficient()
+                self.status.set("")
+            except:
+                self.status.set("Invalid Entries. Check Values")
+            else:
+                # Make sure rise entry returning a valid coefficient
+                if coefficient != -1:
+                    # Clear any error messages when entries all valid
+                    self.status.set("")
 
+                    # Check if "add eaves" box is checked. Get area of roof
+                    if self.eave.get():
+                        self.area = length * (width + 2) * coefficient * self.scrapAllowance
+                    else:
+                        self.area = length * width * coefficient * self.scrapAllowance
 
-        if self.strShingleType.get() == "20":
-            self.cost = self.area * self.twentyCost
-        elif self.strShingleType.get() == "30":
-            self.cost = self.area * self.thirtyCost
+                    # Set shingle cost based on type, error if not selected
+                    if self.strShingleType.get() == "20":
+                        self.cost = self.area * self.twentyCost
+                        self.strTotal.set(str(f"${round(float(self.cost), 2)}"))
+                    elif self.strShingleType.get() == "30":
+                        self.cost = self.area * self.thirtyCost
+                        self.strTotal.set(str(f"${round(float(self.cost), 2)}"))
+                    else:
+                        self.status.set("Please select shingle type")   
+                else:
+                    self.status.set("Invalid Rise. Check Value")
 
-        self.strTotal.set(str(round(float(self.cost), 2)))
+    def clear_form(self):
+        self.strLength.set("")
+        self.strWidth.set("")
+        self.strRise.set("")
+        self.eave.set(False)
+        self.strShingleType.set(None)
+        self.strTotal.set("")
 
 
 def main():
