@@ -6,3 +6,6 @@ the rise of the roof pitch (With an assumed run of 12 for simplicity's sake) and
 we are adding additional width (2 feet) for eaves.
 
 Uses tkinter to create a GUI forum interface.
+
+TODO:
+More specific GUI changes on validation check. Maybe a classic red border on invalid entries.
